@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atmosph&egrave;re - Weather</title>
+    <meta name="description" content="Atmosph&egrave;re is a minimal weather app with current conditions, hourly forecasts, seven-day outlooks, and essential weather details.">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="loadingBar" aria-hidden="true"></div>
+    <div id="toast" role="alert" aria-live="polite"></div>
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <div class="app-frame">
+        <header class="site-header">
+            <div class="header-inner">
+                <form id="searchForm" class="search-form" role="search" aria-label="Search for a city">
+                    <label for="cityInput" class="sr-only">City name</label>
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+                        <path d="M7.1 12.2a5.1 5.1 0 1 1 0-10.2 5.1 5.1 0 0 1 0 10.2Zm3.8-1.1 3.1 3.1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    <input id="cityInput" type="text" placeholder="Search city" autocomplete="off" spellcheck="false">
+                    <button id="searchBtn" type="submit" aria-label="Search">
+                        <svg width="17" height="17" viewBox="0 0 17 17" aria-hidden="true">
+                            <path d="M3 8.5h10.3m-4-4 4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </form>
+
+                <div class="unit-toggle" role="radiogroup" aria-label="Temperature unit">
+                    <button class="unit-btn active" data-unit="C" type="button" role="radio" aria-checked="true">&deg;C</button>
+                    <button class="unit-btn" data-unit="F" type="button" role="radio" aria-checked="false">&deg;F</button>
+                </div>
+
+                <div id="autocomplete" class="autocomplete" role="listbox" aria-label="City suggestions"></div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="hero" aria-label="Current weather">
+                <p class="hero-location" id="location">Locating...</p>
+                <h1 class="hero-temp" id="temperature">--&deg;</h1>
+                <p class="hero-condition" id="condition">--</p>
+                <p class="hero-meta">
+                    H:<span id="highTemp">--</span>
+                    L:<span id="lowTemp">--</span>
+                    <span class="hero-meta-divider">Feels like <span id="feelsLike">--</span></span>
+                </p>
+                <div id="mainIcon" class="hero-icon" aria-hidden="true"></div>
+            </section>
+
+            <section class="card-section hourly-section" aria-label="Hourly forecast">
+                <h2 class="section-title">Hourly Forecast</h2>
+                <div class="hourly-scroll" id="hourly" role="list"></div>
+            </section>
+
+            <section class="card-section daily-section" aria-label="7-day forecast">
+                <h2 class="section-title">7-Day Forecast</h2>
+                <div id="daily" role="list"></div>
+            </section>
+
+            <section class="metrics" aria-label="Weather details">
+                <h2 class="sr-only">Weather Details</h2>
+
+                <article class="metric-tile">
+                    <h3 class="metric-label">Humidity</h3>
+                    <p class="metric-value" id="humidity">--</p>
+                    <p class="metric-desc" id="humidityText">--</p>
+                </article>
+
+                <article class="metric-tile">
+                    <h3 class="metric-label">UV Index</h3>
+                    <p class="metric-value" id="uv">--</p>
+                    <p class="metric-desc" id="uvLabel">--</p>
+                </article>
+
+                <article class="metric-tile">
+                    <h3 class="metric-label">Wind</h3>
+                    <p class="metric-value" id="windSpeed">--</p>
+                    <p class="metric-desc"><span id="windDir">--</span> &middot; Gusts <span id="windGust">--</span></p>
+                </article>
+
+                <article class="metric-tile">
+                    <h3 class="metric-label">Feels Like</h3>
+                    <p class="metric-value" id="feelsLikeBottom">--</p>
+                    <p class="metric-desc">Apparent temperature</p>
+                </article>
+
+                <article class="metric-tile">
+                    <h3 class="metric-label">Visibility</h3>
+                    <p class="metric-value" id="visibility">--</p>
+                    <p class="metric-desc" id="visibilityText">--</p>
+                </article>
+
+                <article class="metric-tile">
+                    <h3 class="metric-label">Precipitation</h3>
+                    <p class="metric-value" id="precipProb">--</p>
+                    <p class="metric-desc" id="precipText">--</p>
+                </article>
+
+                <article class="metric-tile">
+                    <h3 class="metric-label">Sunrise</h3>
+                    <p class="metric-value" id="sunrise">--</p>
+                    <p class="metric-desc">Sunset <span id="sunset">--</span></p>
+                </article>
+
+                <article class="metric-tile">
+                    <h3 class="metric-label">Daylight</h3>
+                    <p class="metric-value" id="dayLengthBottom">--</p>
+                    <p class="metric-desc" id="dayLengthSub">--</p>
+                </article>
+            </section>
+
+            <section class="card-section tips-section" aria-label="Lifestyle tips">
+                <h2 class="section-title">Lifestyle</h2>
+                <div class="tips-grid" id="tipsGrid"></div>
+            </section>
+
+            <footer class="site-footer">
+                <p id="updated"></p>
+            </footer>
+
+            <div class="data-sinks" aria-hidden="true">
+                <span id="humidityBar"></span>
+                <span id="uvBar"></span>
+                <span id="precipBar"></span>
+                <span id="needle"></span>
+                <span id="sunProgress"></span>
+                <span id="sunDot"></span>
+                <span id="sunGlow"></span>
+                <span id="dayLength"></span>
+                <span id="windSpeedBottom"></span>
+                <span id="windGustBottom"></span>
+                <span id="dayType"></span>
+                <span id="dayTypeText"></span>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+
+</html>
